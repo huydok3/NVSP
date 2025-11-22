@@ -20,6 +20,8 @@
     public class UpdateTaiKhoanDTO
     {
         public string HoTen { get; set; }
+        public string MatKhau { get; set; }
+        public string LoaiTk { get; set; }
         public string Email { get; set; }
     }
 }

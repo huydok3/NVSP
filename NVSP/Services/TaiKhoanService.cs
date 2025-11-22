@@ -1,17 +1,18 @@
 ﻿using NVSP.DTOs;
 using NVSP.Repositories;
-using System.Security.Cryptography;
-using System.Text;
+using Microsoft.Extensions.Logging;
 
 namespace NVSP.Services
 {
     public class TaiKhoanService : ITaiKhoanService
     {
         private readonly ITaiKhoanRepository _taiKhoanRepository;
+        private readonly ILogger<TaiKhoanService> _logger;
 
-        public TaiKhoanService(ITaiKhoanRepository taiKhoanRepository)
+        public TaiKhoanService(ITaiKhoanRepository taiKhoanRepository, ILogger<TaiKhoanService> logger)
         {
             _taiKhoanRepository = taiKhoanRepository;
+            _logger = logger;
         }
 
         public async Task<TaiKhoanDTO> GetByMaCaNhanAsync(string maCaNhan)
@@ -37,7 +38,7 @@ namespace NVSP.Services
             {
                 MaCaNhan = createTaiKhoanDTO.MaCaNhan,
                 HoTen = createTaiKhoanDTO.HoTen,
-                MatKhau = HashPassword(createTaiKhoanDTO.MatKhau),
+                MatKhau = BCrypt.Net.BCrypt.HashPassword(createTaiKhoanDTO.MatKhau), 
                 LoaiTk = createTaiKhoanDTO.LoaiTk,
                 Email = createTaiKhoanDTO.Email
             };
@@ -56,23 +57,33 @@ namespace NVSP.Services
 
             taiKhoan.HoTen = updateTaiKhoanDTO.HoTen;
             taiKhoan.Email = updateTaiKhoanDTO.Email;
+            taiKhoan.LoaiTk = updateTaiKhoanDTO.LoaiTk;
+
+            if (!string.IsNullOrEmpty(updateTaiKhoanDTO.MatKhau))
+            {
+                taiKhoan.MatKhau = BCrypt.Net.BCrypt.HashPassword(updateTaiKhoanDTO.MatKhau);
+            }
 
             await _taiKhoanRepository.UpdateAsync(taiKhoan);
             return MapToDTO(taiKhoan);
         }
 
-        public async Task<bool> DeleteAsync(int id)
+        public async Task<bool> DeleteAsync(string maCaNhan)
         {
-            await _taiKhoanRepository.DeleteAsync(id);
+            var taiKhoan = await _taiKhoanRepository.GetByMaCaNhanAsync(maCaNhan);
+            if (taiKhoan == null)
+            {
+                return false;
+            }
+
+            await _taiKhoanRepository.DeleteAsync(taiKhoan.Id);
             return true;
         }
 
-        private string HashPassword(string password)
+        public async Task<IEnumerable<TaiKhoanDTO>> SearchAsync(string keyword)
         {
-            using var sha256 = SHA256.Create();
-            var bytes = Encoding.UTF8.GetBytes(password);
-            var hash = sha256.ComputeHash(bytes);
-            return Convert.ToBase64String(hash);
+            var taiKhoans = await _taiKhoanRepository.SearchAsync(keyword);
+            return taiKhoans.Select(MapToDTO);
         }
 
         private TaiKhoanDTO MapToDTO(Models.TaiKhoan taiKhoan)

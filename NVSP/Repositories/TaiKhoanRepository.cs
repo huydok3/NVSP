@@ -55,5 +55,20 @@ namespace NVSP.Repositories
         {
             return await _context.TaiKhoans.AnyAsync(t => t.MaCaNhan == maCaNhan);
         }
+
+        public async Task<IEnumerable<TaiKhoan>> SearchAsync(string keyword)
+        {
+            if (string.IsNullOrWhiteSpace(keyword))
+                return await _context.TaiKhoans.ToListAsync();
+
+            var searchTerm = keyword.ToLower().Trim();
+
+            return await _context.TaiKhoans
+                .Where(t =>
+                    t.MaCaNhan.ToLower().Contains(searchTerm) ||
+                    t.HoTen.ToLower().Contains(searchTerm))
+                .OrderBy(t => t.MaCaNhan)
+                .ToListAsync();
+        }
     }
 }

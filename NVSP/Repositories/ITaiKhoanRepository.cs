@@ -11,5 +11,6 @@ namespace NVSP.Repositories
         Task UpdateAsync(TaiKhoan taiKhoan);
         Task DeleteAsync(int id);
         Task<bool> MaCaNhanExistsAsync(string maCaNhan);
+        Task<IEnumerable<TaiKhoan>> SearchAsync(string keyword);
     }
 }

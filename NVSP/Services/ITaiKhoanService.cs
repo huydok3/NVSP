@@ -8,6 +8,7 @@ namespace NVSP.Services
         Task<IEnumerable<TaiKhoanDTO>> GetAllAsync();
         Task<TaiKhoanDTO> CreateAsync(CreateTaiKhoanDTO createTaiKhoanDTO);
         Task<TaiKhoanDTO> UpdateAsync(string maCaNhan, UpdateTaiKhoanDTO updateTaiKhoanDTO);
-        Task<bool> DeleteAsync(int id);
+        Task<bool> DeleteAsync(string maCaNhan);
+        Task<IEnumerable<TaiKhoanDTO>> SearchAsync(string keyword);
     }
 }
